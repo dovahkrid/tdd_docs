@@ -33,7 +33,24 @@ flowchart TD
     style E stroke:#80ED80
 ```
 
-The graph above is the development flow which involves all 3 of the Test Developments.
+Let's have an example that in the first screen of BrightSocial, we have a phone number input. Here's the steps:
+
+<procedure title="User Step" id="user-step">
+    <step>
+        <p>Type the phone number</p>
+    </step>
+    <step>
+        <p>Press <shortcut>Next</shortcut></p>
+    </step>
+    <step>
+        <p>The API check the availability</p>
+    </step>
+    <step>
+        <p>Receive the result through text or dialog</p>
+    </step>
+</procedure>
 
 ##### ATDD (Acceptance Test-Driven Development)
+
+
 
