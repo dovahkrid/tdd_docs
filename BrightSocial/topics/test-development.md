@@ -484,15 +484,96 @@ This integrated approach ensures that each phase of development is guided by tes
 acceptance tests to low-level unit tests, leading to a well-tested, robust feature that meets both the technical and
 business requirements.
 
+## Current Status of BrightSocial
+
+For the Android version of BrightSocial, the data flow is actually almost the same with the example above, except the ```xService``` is actually the interface than the ```xAPI```.
+For example, I'm taking the ```getFeedsByHashtag``` function as the example.
+
+
+```mermaid
+flowchart LR
+  subgraph SearchPostsViewModel ["`SearchPostsViewModel`"]
+    direction TB
+    b1["`getFeedsByHashtag`"]
+  end
+  subgraph PostRepository ["`PostRepository`"]
+    direction TB
+    c1["`searchPostsByHashtag`"]
+  end
+  subgraph SocialWebService ["`SocialWebService (Interface)`"]
+    direction TB
+    d1["`getHashtagSearchLatestPosts`"]
+  end
+
+  b1 --> c1
+  c1 --> d1
+
+```
+
+At first, it still looks divided just like the example. But the problem is every ```ViewModel```(s) are actually using the same ```PostRepository```. For example
+
+
+```mermaid
+flowchart LR
+    subgraph UserProfileViewModel ["`UserProfileViewModel`"]
+        direction TB
+        a1["`getFriends`"]
+    end
+    subgraph PostDetailsViewModel ["`PostDetailsViewModel`"]
+        direction TB
+        e1["`getVideoProgress`"]
+    end
+    subgraph SearchPostsViewModel ["`SearchPostsViewModel`"]
+        direction TB
+        b1["`getFeedsByHashtag`"]
+        b2["`searchAllByKeyword`"]
+    end
+    subgraph PostRepository ["`PostRepository`"]
+        direction TB
+        c1["`searchPostsByHashtag`"]
+        c2["`searchAllByTerm`"]
+        c3["`getFriendList`"]
+        c4["`getVideoProgress`"]
+    end
+    subgraph SocialWebService ["`SocialWebService (Interface)`"]
+        direction TB
+        d1["`getHashtagSearchLatestPosts`"]
+        d2["`searchAll`"]
+        d3["`getFriendList`"]
+        d4["`getVideoProgress`"]
+    end
+
+    a1 --> c3
+    c3 --> d3
+    b1 --> c1
+    c1 --> d1
+    b2 --> c2
+    c2 --> d2
+    e1 --> c4
+    c4 --> d4
+```
+
+The ```PostRepository``` is not a "unit" but a "monolith". So when creating tests for the feature (let's say we need 3 tests for each unit: integration test, success test and error test).
+
+Which means, in the example, ```SearchPostsViewModel``` will have 6 tests for 2 functions, ```UserProfileViewModel``` will have 3 tests for 1 function, and ```PostDetailsViewModel``` will have 3 tests for 1 function.
+
+And in the ```PostRepository```, we will have 12 tests, for 3 different features, which makes a complex test suite.
+**Currently, there are about ~90 APIs, which are ~90 functions in repository, which means you need ~270 function test**. 
+You have to control which test is for which feature (and to be honest, you can't) because you will run feature test many times in the whole lifetime of the product.
+
+Also with this "monolith", it's hard to do parallel development since everyone has to access to this repository.
+
+So my proposed solution is to split the repository into smaller repositories for each feature. But it is still going to need a lot of time since the product is already go too far, and already in the production.
+
+That's why, I think we should start with the new product, make it a "lab project". When the method is proven, we can apply it to the current product.
+
+
+
+
+
+
 ## FAQ
 **Q:** Do we need all three types of tests (BDD, ATDD, TDD) ?
 
-**A:** Short answer: No. 
-Long answer: It depends on the project. With a small project. unit tests are already a little overkill. But with big project, the more detail test suite, the better.
-
-**Q:** If the project is already in production, is it too late to add tests ?
-
-**A:** No. It's still possible to add tests to the project. But it will be a little bit harder since you have to refactor the code to make it testable.
-I propose we should start with a small project first, since we need to apply this process to many teams, not only dev team.
-
-
+**A:** No. Because it's not always possible to have all three types of tests. 
+For example you can't do BDD tests for a function that doesn't have any user interaction.
