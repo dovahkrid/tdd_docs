@@ -18,7 +18,7 @@ flowchart TD
     4["`TDD for Low-Level Specifications`"]
     5["`Back to the BDD Tests`"]
     6["`Review and Feedback`"]
-    5["`Final Validation and Documentation`"]
+    7["`Final Validation and Documentation`"]
     1 --> 2 --> 3 --> 4 --> 5 --> 6 --> 7
 ```
 
